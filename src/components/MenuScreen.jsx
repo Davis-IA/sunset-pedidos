@@ -86,7 +86,7 @@ export default function MenuScreen({
           {!loading && menuImage && (
             <div
               className="mx-4 mt-3 rounded-2xl overflow-hidden bg-white relative"
-              style={{ height: '210px' }}
+              style={{ height: '215px' }}
             >
               <img
                 src={menuImage}
@@ -98,7 +98,7 @@ export default function MenuScreen({
                 className="absolute inset-0"
                 style={{
                   background:
-                    'linear-gradient(to bottom, transparent 0%, transparent 70%, rgba(255,255,255,0.6) 80%, white 92%, white 100%)',
+                    'linear-gradient(to bottom, transparent 0%, transparent 78%, rgba(255,255,255,0.6) 86%, white 94%, white 100%)',
                 }}
               />
             </div>
