@@ -52,11 +52,11 @@ export default function OrderSummary({ cart, user, subtotal, onRemove, onUpdateD
                     <p className="font-bold text-[#1a1a1a] text-sm leading-tight">
                       {item.quantity}x {item.name}
                     </p>
-                    <p className="text-[#888888] text-xs mt-1 leading-snug">
-                      {item.isSopa
-                        ? '2 tortillas'
-                        : `${item.acompañamiento} + ${item.ensalada} + 2 tortillas`}
-                    </p>
+                    {item.details && (
+                      <p className="text-[#888888] text-xs mt-1 leading-snug">
+                        {item.details}
+                      </p>
+                    )}
                     <p className="text-sunset font-bold text-sm mt-1.5">
                       ${(item.priceNum * item.quantity).toFixed(2)}
                     </p>

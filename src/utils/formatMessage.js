@@ -17,10 +17,8 @@ export function formatWhatsAppMessage(user, cart, subtotal) {
 
   dishes.forEach((item) => {
     const lineTotal = (item.priceNum * item.quantity).toFixed(2)
-    const details = item.isSopa
-      ? '2 tortillas'
-      : `${item.acompañamiento} + ${item.ensalada} + 2 tortillas`
-    lines.push(`- ${item.quantity}x ${item.name} (${details}) — $${lineTotal}`)
+    const detailStr = item.details ? ` (${item.details})` : ''
+    lines.push(`- ${item.quantity}x ${item.name}${detailStr} — $${lineTotal}`)
   })
 
   drinks.forEach((item) => {

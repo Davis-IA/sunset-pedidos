@@ -1,16 +1,54 @@
 import { useState, useEffect } from 'react'
 
-const ACOMPAÑAMIENTOS = ['Arroz', 'Casamiento']
-const ENSALADAS = ['Ensalada fresca', 'Chimol']
+const ALL_ACOMPAÑAMIENTOS = ['Arroz', 'Casamiento']
+const ALL_ENSALADAS = ['Ensalada fresca', 'Chimol']
+
+/**
+ * Reads dish name + description and returns which selectors to show
+ * and which specific options to offer.
+ */
+function detectOptions(dish) {
+  const desc = (dish.description || '').toLowerCase()
+  const name = dish.name.toLowerCase()
+
+  // Rule 1: sopa or "sin acompañamientos" → simple mode
+  if (name.includes('sopa') || desc.includes('sin acompañamientos')) {
+    return {
+      isSopa: true,
+      showAcomp: false,
+      showEnsalada: false,
+      showTortillas: true,
+      availableAcomp: [],
+      availableEnsaladas: [],
+    }
+  }
+
+  // Rules 2–5: dynamically filter options based on description keywords
+  const availableAcomp = ALL_ACOMPAÑAMIENTOS.filter((opt) =>
+    desc.includes(opt.toLowerCase()),
+  )
+  const availableEnsaladas = ALL_ENSALADAS.filter((opt) => {
+    if (opt === 'Ensalada fresca') return desc.includes('ensalada') || desc.includes('coditos')
+    if (opt === 'Chimol') return desc.includes('chimol')
+    return false
+  })
+
+  return {
+    isSopa: false,
+    showAcomp: availableAcomp.length > 0,        // Rule 2
+    showEnsalada: availableEnsaladas.length > 0,  // Rule 3
+    showTortillas: desc.includes('tortilla'),      // Rule 4
+    availableAcomp,
+    availableEnsaladas,
+  }
+}
 
 export default function AddDishModal({ dish, onClose, onConfirm }) {
-  const [acompañamiento, setAcompañamiento] = useState('Arroz')
-  const [ensalada, setEnsalada] = useState('Ensalada fresca')
-  const [quantity, setQuantity] = useState(1)
+  const opts = detectOptions(dish)
 
-  const isSopa =
-    dish.name.toLowerCase().includes('sopa') ||
-    dish.description?.toLowerCase().includes('sin acompañamientos')
+  const [acompañamiento, setAcompañamiento] = useState(opts.availableAcomp[0] || 'Arroz')
+  const [ensalada, setEnsalada] = useState(opts.availableEnsaladas[0] || 'Ensalada fresca')
+  const [quantity, setQuantity] = useState(1)
 
   // Close on Escape key
   useEffect(() => {
@@ -29,18 +67,29 @@ export default function AddDishModal({ dish, onClose, onConfirm }) {
   const showPrice = dish.priceNum > 0
 
   const handleConfirm = () => {
+    // Build a single details string for display in summary + WhatsApp message
+    const parts = []
+    if (!opts.isSopa && opts.showAcomp)    parts.push(acompañamiento)
+    if (!opts.isSopa && opts.showEnsalada) parts.push(ensalada)
+    if (opts.showTortillas)                parts.push('2 tortillas')
+
     onConfirm({
       type: 'dish',
       dishId: dish.id,
       name: dish.name,
       price: dish.price,
       priceNum: dish.priceNum,
-      isSopa,
-      acompañamiento: isSopa ? '' : acompañamiento,
-      ensalada: isSopa ? '' : ensalada,
+      isSopa: opts.isSopa,
+      acompañamiento: opts.showAcomp ? acompañamiento : '',
+      ensalada: opts.showEnsalada ? ensalada : '',
+      details: parts.join(' + '),
       quantity,
     })
   }
+
+  // Show simple tortillas note when: sopa, OR has tortillas but no selectors
+  const showSimpleNote =
+    opts.isSopa || (!opts.showAcomp && !opts.showEnsalada && opts.showTortillas)
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -68,50 +117,54 @@ export default function AddDishModal({ dish, onClose, onConfirm }) {
           </button>
         </div>
 
-        {/* Acompañamiento + Ensalada — hidden for sopas */}
-        {isSopa ? (
+        {/* Selectors / simple note */}
+        {showSimpleNote ? (
           <div className="mb-5 bg-[#F8FAF5] rounded-2xl px-4 py-3">
             <p className="text-sm text-[#4a7c59] font-medium">✓ Incluye 2 tortillas</p>
           </div>
         ) : (
           <>
-            <div className="mb-5">
-              <p className="text-sm font-semibold text-[#1a1a1a] mb-2">Acompañamiento</p>
-              <div className="flex gap-2 flex-wrap">
-                {ACOMPAÑAMIENTOS.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => setAcompañamiento(opt)}
-                    className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                      acompañamiento === opt
-                        ? 'bg-sunset text-white font-semibold'
-                        : 'bg-[#F0F0F0] text-[#555555]'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
+            {opts.showAcomp && (
+              <div className="mb-5">
+                <p className="text-sm font-semibold text-[#1a1a1a] mb-2">Acompañamiento</p>
+                <div className="flex gap-2 flex-wrap">
+                  {opts.availableAcomp.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => setAcompañamiento(opt)}
+                      className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                        acompañamiento === opt
+                          ? 'bg-sunset text-white font-semibold'
+                          : 'bg-[#F0F0F0] text-[#555555]'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="mb-5">
-              <p className="text-sm font-semibold text-[#1a1a1a] mb-2">Ensalada</p>
-              <div className="flex gap-2 flex-wrap">
-                {ENSALADAS.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => setEnsalada(opt)}
-                    className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                      ensalada === opt
-                        ? 'bg-sunset text-white font-semibold'
-                        : 'bg-[#F0F0F0] text-[#555555]'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
+            {opts.showEnsalada && (
+              <div className="mb-5">
+                <p className="text-sm font-semibold text-[#1a1a1a] mb-2">Ensalada</p>
+                <div className="flex gap-2 flex-wrap">
+                  {opts.availableEnsaladas.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => setEnsalada(opt)}
+                      className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                        ensalada === opt
+                          ? 'bg-sunset text-white font-semibold'
+                          : 'bg-[#F0F0F0] text-[#555555]'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </>
         )}
 
