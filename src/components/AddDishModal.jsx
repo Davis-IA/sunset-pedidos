@@ -23,23 +23,19 @@ function detectOptions(dish) {
     }
   }
 
-  // Rules 2–5: dynamically filter options based on description keywords
-  const availableAcomp = ALL_ACOMPAÑAMIENTOS.filter((opt) =>
-    desc.includes(opt.toLowerCase()),
-  )
-  const availableEnsaladas = ALL_ENSALADAS.filter((opt) => {
-    if (opt === 'Ensalada fresca') return desc.includes('ensalada') || desc.includes('coditos')
-    if (opt === 'Chimol') return desc.includes('chimol')
-    return false
-  })
+  // Detection: does the dish carry this type of side? (any keyword triggers full list)
+  const hasAcomp    = desc.includes('arroz') || desc.includes('casamiento')
+  const hasEnsalada = desc.includes('ensalada') || desc.includes('chimol') ||
+                      desc.includes('coditos')   || desc.includes('vegetales')
 
   return {
     isSopa: false,
-    showAcomp: availableAcomp.length > 0,        // Rule 2
-    showEnsalada: availableEnsaladas.length > 0,  // Rule 3
-    showTortillas: desc.includes('tortilla'),      // Rule 4
-    availableAcomp,
-    availableEnsaladas,
+    showAcomp: hasAcomp,
+    showEnsalada: hasEnsalada,
+    showTortillas: desc.includes('tortilla'),   // Rule 4
+    // Always offer both options once the category is detected
+    availableAcomp: hasAcomp ? ALL_ACOMPAÑAMIENTOS : [],
+    availableEnsaladas: hasEnsalada ? ALL_ENSALADAS : [],
   }
 }
 
