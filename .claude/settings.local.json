@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Copy-Item \"C:\\\\Users\\\\davis\\\\OneDrive\\\\Escritorio\\\\Cladue_Proyects\\\\sunset\\\\logo_sunset.png\" \"C:\\\\Users\\\\davis\\\\OneDrive\\\\Escritorio\\\\Cladue_Proyects\\\\sunset\\\\public\\\\logo.png\")",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\davis\\\\OneDrive\\\\Escritorio\\\\Cladue_Proyects\\\\sunset\\\\.claude\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(git init *)"
+    ]
+  }
+}
