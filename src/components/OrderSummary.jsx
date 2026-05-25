@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { formatWhatsAppMessage } from '../utils/formatMessage'
 
-const WA_NUMBER = '50277490453'
+const WA_NUMBER = '50377490453'
 
 export default function OrderSummary({ cart, user, subtotal, onRemove, onUpdateDrink, onBack }) {
   const [logoError, setLogoError] = useState(false)

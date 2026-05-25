@@ -10,7 +10,7 @@ export default function ErrorScreen() {
           Por favor contáctanos directamente:
         </p>
         <a
-          href="https://wa.me/50277490453"
+          href="https://wa.me/50377490453"
           target="_blank"
           rel="noreferrer"
           className="block w-full bg-sunset text-white font-semibold py-3.5 rounded-xl text-base text-center active:opacity-80 transition-opacity"
