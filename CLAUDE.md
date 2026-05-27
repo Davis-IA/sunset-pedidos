@@ -18,17 +18,18 @@ El cliente accede vía link de WhatsApp con parámetros URL, elige su comida y e
 
 ```
 App.jsx
- ├─ useMenu()          → JSONP a Google Sheets, expone: dishes, menuImage, refrescoDescripcion
- ├─ UserForm           → validación de nombre + teléfono, guard de entrada
- ├─ MenuScreen         → banner, grid de platos, sección de bebidas
- │    ├─ DishCard      → contador −/n/+ por plato
- │    ├─ AddDishModal  → selectores dinámicos por descripción del plato
- │    ├─ FloatingCart  → barra flotante con subtotal
- │    └─ DecoBackground → SVG decorativo de fondo
- └─ OrderSummary       → resumen editable, botón confirmar por WhatsApp
+ ├─ useMenu()            → JSONP a Google Sheets, expone: dishes, menuImage, refrescoDescripcion
+ ├─ UserForm             → validación de nombre + teléfono, guard de entrada
+ ├─ MenuScreen           → banner, grid de platos, sección de bebidas
+ │    ├─ DishCard        → contador −/n/+ por plato
+ │    ├─ AddDishModal    → selectores dinámicos por descripción del plato
+ │    ├─ FloatingCart    → barra flotante con subtotal
+ │    └─ DecoBackground  → SVG decorativo de fondo
+ ├─ OrderSummary         → resumen editable, botón confirmar/adición/modificación
+ └─ OrderConfirmation    → pantalla post-envío con ID de pedido y acciones
 ```
 
-**Navegación:** state-based (`'menu'` / `'order'`), sin react-router.  
+**Navegación:** state-based (`'menu'` / `'order'` / `'confirmation'`), sin react-router.  
 **Cart state:** vive en `App.jsx` y se pasa como props; no hay Context.
 
 ---
@@ -120,25 +121,107 @@ El modal construye `item.details` (ej: `"Arroz + Ensalada fresca + 2 tortillas"`
 ### `OrderSummary.jsx`
 - Muestra dishes con botón `×` para eliminar y `item.details` como subtítulo
 - Muestra bebidas del cart con `−/n/+` para editar cantidad
-- Botón confirmar → abre WhatsApp con número `50377490453`
+- Recibe `orderId`, `submittedCart`, `onOrderSent` desde `App.jsx`
+- Detecta automáticamente el tipo de envío para el texto del botón:
+  - Primera vez → **"📲 Confirmar pedido por WhatsApp"**
+  - Adición (solo ítems nuevos) → **"📲 Enviar adición por WhatsApp"**
+  - Modificación (hay ítems eliminados) → **"📲 Enviar modificación por WhatsApp"**
+- Al confirmar: abre WhatsApp y llama `onOrderSent()` → App cambia a pantalla `'confirmation'`
 
-### `formatMessage.js`
-Formato del mensaje WhatsApp:
+### `OrderConfirmation.jsx`
+Pantalla post-envío. Se muestra después de confirmar por WhatsApp. **No cierra automáticamente.**
+
+- Ícono ✓ naranja en círculo `bg-[#FFF4E0]`
+- Título "¡Pedido enviado!" + subtítulo
+- Badge con ID del pedido (ej: `Pedido #1857DM`)
+- Resumen de solo lectura de todos los ítems del carrito (dishes + bebidas)
+- Total acumulado
+- Dos botones:
+  - **"+ Agregar algo más"** — vuelve al menú con el carrito intacto
+  - **"Hacer otro pedido"** — reset completo (carrito vacío, nuevo ID)
+- Botón **"✕ Cerrar ventana"** (`window.close()`, `text-sm`, color `#555555`)
+
+### `formatMessage.js` — `formatWhatsAppMessage(user, cart, subtotal, options)`
+
+`options`:
+- `orderId` — string del ID, ej: `"#1857DM"`
+- `isAddition` — `true` cuando es un segundo envío del mismo pedido
+- `submittedCart` — array completo de items enviados en el batch anterior
+
+**Lógica de detección:**
+```js
+const removedItems = submittedCart.filter(i => !currentIds.has(i.cartId))
+const newItems     = cart.filter(i => !submittedIds.has(i.cartId))
+const isModification = isAddition && removedItems.length > 0
+```
+
+**Tipos de mensaje:**
+
+| Escenario | Header | Sección |
+|---|---|---|
+| Primer envío | `🛒 *NUEVO PEDIDO*` | `📋 *Detalle del pedido:*` |
+| Solo ítems nuevos | `➕ *ADICIÓN AL PEDIDO #XXXX*` | `📋 *Ítems agregados:*` |
+| Hay ítems eliminados | `✏️ *MODIFICACIÓN AL PEDIDO #XXXX*` | `📋 *Cambios al pedido:*` |
+
+Ítems eliminados se muestran con `❌ ELIMINADO:` antes de los nuevos.
+
+**Footer para adiciones/modificaciones:**
+```
+💵 *Adición (sin envío): $X.XX*         ← solo ítems nuevos
+💵 *Total acumulado (sin envío): $Y.YY*  ← subtotal completo del carrito
+```
+
+**Ejemplo de mensaje completo (primer pedido):**
 ```
 🛒 *NUEVO PEDIDO - Sunset Sabor Casero*
-👤 *Cliente:* {nombre}
-📞 *Teléfono:* {tel}
+
+👤 *Cliente:* Davis
+📞 *Teléfono:* 76543210
+
 📋 *Detalle del pedido:*
 - 1x Sopa de gallina (2 tortillas) — $5.00
 - 1x Gallina asada (Casamiento + Chimol + 2 tortillas) — $6.00
 - 1x Pepsi — $1.00
+
 💵 *Subtotal (sin envío): $12.00*
+
 ⏰ *Pedido realizado:* 12:30 PM
 ```
 
 ### `DecoBackground.jsx`
 SVG decorativo con Spoon, Fork, Chili, Leaf, Onion, Herb, Dot.  
 `opacity="0.07"`, `viewBox="0 0 430 1600"`, `pointer-events-none`.
+
+---
+
+## App.jsx — Estado global
+
+```js
+const [user, setUser]             = useState(readUrlParams)   // null → muestra UserForm
+const [screen, setScreen]         = useState('menu')          // 'menu' | 'order' | 'confirmation'
+const [cart, setCart]             = useState([])
+const [orderId, setOrderId]       = useState(null)            // ej: "#1857DM"
+const [submittedCart, setSubmittedCart] = useState([])        // snapshot del cart en el último envío
+```
+
+### `generateOrderId(nombre)`
+```js
+// Formato: #HHMM + 2 iniciales del nombre
+// "Davis Martínez" a las 18:57 → "#1857DM"
+const hh = String(now.getHours()).padStart(2, '0')
+const mm = String(now.getMinutes()).padStart(2, '0')
+const initials = nombre.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase()).join('')
+return `#${hh}${mm}${initials}`
+```
+
+### Flujo de envíos
+1. Cliente confirma → `handleOrderSent()`:
+   - Genera `orderId` (si no existe)
+   - Guarda snapshot: `setSubmittedCart([...cart])`
+   - Cambia pantalla a `'confirmation'`
+2. "Agregar algo más" → `handleAddMore()`: `setScreen('menu')` (carrito intacto)
+3. Cliente agrega/elimina ítems → va a `OrderSummary` → detecta adición o modificación
+4. "Hacer otro pedido" → `handleNewOrder()`: limpia cart, orderId y submittedCart
 
 ---
 
@@ -164,7 +247,7 @@ animations: slide-up, scale-in, fade-in
 ### Dish
 ```js
 {
-  cartId: string,       // unique ID
+  cartId: string,       // unique ID: `${Date.now()}-${Math.random()}`
   type: 'dish',
   dishId: number,       // dish.id del sheet
   name: string,
@@ -181,13 +264,15 @@ animations: slide-up, scale-in, fade-in
 ### Drink
 ```js
 {
-  cartId: string,
+  cartId: string,       // `drink-${name}-${Date.now()}` — fijo; cantidad se actualiza in-place
   type: 'drink',
   name: string,         // coincide con la key en DRINK_PRICES de App.jsx
   priceNum: number,
   quantity: number,
 }
 ```
+
+> ⚠️ Los drinks usan un `cartId` fijo por nombre. Si el usuario aumenta la cantidad de una bebida ya enviada, el `cartId` no cambia → no aparece en `newItems` al generar un mensaje de adición. Esto es comportamiento intencional.
 
 ---
 
@@ -198,3 +283,4 @@ animations: slide-up, scale-in, fade-in
 - [ ] **Comentarios de entrega:** opción para que el cliente escriba una nota libre antes de confirmar (dirección, piso, referencias)
 - [ ] **Historial de pedidos:** actualmente no se persiste nada entre sesiones
 - [ ] **Límite de stock:** `dish.quantity` se lee del sheet pero no se usa para deshabilitar el botón cuando llega a 0
+- [ ] **Cambio de cantidad de bebida ya enviada:** si se aumenta una bebida del pedido original al agregar más, ese cambio no se refleja en el mensaje de adición (ver nota en Cart item → Drink)
