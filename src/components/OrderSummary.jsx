@@ -12,20 +12,23 @@ export default function OrderSummary({
   onBack,
   onOrderSent,
   orderId,
-  submittedCartIds,
+  submittedCart,
 }) {
   const [logoError, setLogoError] = useState(false)
 
   const dishes = cart.filter((item) => item.type === 'dish')
   const selectedDrinks = cart.filter((item) => item.type === 'drink')
 
-  const isAddition = Boolean(orderId && submittedCartIds && submittedCartIds.length > 0)
+  // Determine whether this is a follow-up send and whether it includes removals
+  const isAddition     = Boolean(orderId && submittedCart && submittedCart.length > 0)
+  const currentIds     = new Set(cart.map((i) => i.cartId))
+  const isModification = isAddition && submittedCart.some((i) => !currentIds.has(i.cartId))
 
   const handleConfirm = () => {
     const message = formatWhatsAppMessage(user, cart, subtotal, {
       orderId,
       isAddition,
-      submittedCartIds: submittedCartIds ?? [],
+      submittedCart: submittedCart ?? [],
     })
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`, '_blank')
     onOrderSent?.()
@@ -148,7 +151,11 @@ export default function OrderSummary({
               onClick={handleConfirm}
               className="w-full bg-sunset text-white font-semibold py-4 rounded-2xl text-base active:opacity-80 transition-opacity shadow-md"
             >
-              {isAddition ? '📲 Enviar adición por WhatsApp' : '📲 Confirmar pedido por WhatsApp'}
+              {isModification
+                ? '📲 Enviar modificación por WhatsApp'
+                : isAddition
+                ? '📲 Enviar adición por WhatsApp'
+                : '📲 Confirmar pedido por WhatsApp'}
             </button>
             <button
               onClick={onBack}

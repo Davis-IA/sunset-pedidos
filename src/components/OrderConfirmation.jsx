@@ -129,9 +129,14 @@ export default function OrderConfirmation({ cart, subtotal, orderId, onAddMore, 
           </div>
 
           {/* Close hint */}
-          <p className="text-center text-[#BBBBBB] text-xs pb-6">
-            Puedes cerrar esta ventana
-          </p>
+          <div className="flex justify-center pb-6">
+            <button
+              onClick={() => window.close()}
+              className="text-[#555555] text-sm cursor-pointer active:opacity-60 transition-opacity"
+            >
+              ✕ Cerrar ventana
+            </button>
+          </div>
 
         </div>
       </div>

@@ -31,7 +31,7 @@ export default function App() {
   const [screen, setScreen] = useState('menu')   // 'menu' | 'order' | 'confirmation'
   const [cart, setCart] = useState([])
   const [orderId, setOrderId] = useState(null)
-  const [submittedCartIds, setSubmittedCartIds] = useState([])
+  const [submittedCart, setSubmittedCart] = useState([])  // full items sent in last batch
 
   // Menu data — loaded once here and passed down to both screens
   const { dishes, menuImage, loading, error, refrescoDescripcion } = useMenu()
@@ -49,10 +49,10 @@ export default function App() {
     }
   }, [cart, screen])
 
-  /** Called after WhatsApp opens — saves sent IDs and shows confirmation */
+  /** Called after WhatsApp opens — saves the full sent cart snapshot and shows confirmation */
   const handleOrderSent = useCallback(() => {
     setOrderId((prev) => prev ?? generateOrderId(user?.nombre ?? ''))
-    setSubmittedCartIds(cart.map((item) => item.cartId))
+    setSubmittedCart([...cart])   // snapshot of everything currently in the cart
     setScreen('confirmation')
   }, [user, cart])
 
@@ -65,7 +65,7 @@ export default function App() {
   const handleNewOrder = useCallback(() => {
     setCart([])
     setOrderId(null)
-    setSubmittedCartIds([])
+    setSubmittedCart([])
     setScreen('menu')
   }, [])
 
@@ -163,7 +163,7 @@ export default function App() {
         onBack={() => setScreen('menu')}
         onOrderSent={handleOrderSent}
         orderId={orderId}
-        submittedCartIds={submittedCartIds}
+        submittedCart={submittedCart}
       />
     )
   }
