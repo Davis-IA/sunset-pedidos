@@ -3,15 +3,32 @@ import { formatWhatsAppMessage } from '../utils/formatMessage'
 
 const WA_NUMBER = '50377490453'
 
-export default function OrderSummary({ cart, user, subtotal, onRemove, onUpdateDrink, onBack }) {
+export default function OrderSummary({
+  cart,
+  user,
+  subtotal,
+  onRemove,
+  onUpdateDrink,
+  onBack,
+  onOrderSent,
+  orderId,
+  submittedCartIds,
+}) {
   const [logoError, setLogoError] = useState(false)
 
   const dishes = cart.filter((item) => item.type === 'dish')
   const selectedDrinks = cart.filter((item) => item.type === 'drink')
 
+  const isAddition = Boolean(orderId && submittedCartIds && submittedCartIds.length > 0)
+
   const handleConfirm = () => {
-    const message = formatWhatsAppMessage(user, cart, subtotal)
+    const message = formatWhatsAppMessage(user, cart, subtotal, {
+      orderId,
+      isAddition,
+      submittedCartIds: submittedCartIds ?? [],
+    })
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`, '_blank')
+    onOrderSent?.()
   }
 
   return (
@@ -131,7 +148,7 @@ export default function OrderSummary({ cart, user, subtotal, onRemove, onUpdateD
               onClick={handleConfirm}
               className="w-full bg-sunset text-white font-semibold py-4 rounded-2xl text-base active:opacity-80 transition-opacity shadow-md"
             >
-              📲 Confirmar pedido por WhatsApp
+              {isAddition ? '📲 Enviar adición por WhatsApp' : '📲 Confirmar pedido por WhatsApp'}
             </button>
             <button
               onClick={onBack}
