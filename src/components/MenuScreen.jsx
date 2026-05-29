@@ -200,7 +200,7 @@ export default function MenuScreen({
 
           {/* Info notes */}
           {!loading && (
-            <div className="px-4 pb-40">
+            <div className="px-4 pb-40 mt-8">
               {/* Box: schedule + payment */}
               <div
                 style={{
@@ -223,7 +223,7 @@ export default function MenuScreen({
                 href="https://www.instagram.com/sunsetsaborcasero"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center gap-2 mt-4 active:opacity-70 transition-opacity"
+                className="flex items-center justify-center gap-2 mt-12 mb-8 active:opacity-70 transition-opacity"
               >
                 {/* Instagram logo with official gradient */}
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
