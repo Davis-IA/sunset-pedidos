@@ -201,6 +201,7 @@ export default function MenuScreen({
           {/* Info notes */}
           {!loading && (
             <div className="px-4 pb-40">
+              {/* Box: schedule + payment */}
               <div
                 style={{
                   background: '#FFF8EE',
@@ -215,10 +216,34 @@ export default function MenuScreen({
                 <p className="text-sm text-[#1a1a1a] leading-snug mt-2.5">
                   💳 Pagás en efectivo o transferencia bancaria.
                 </p>
-                <p className="text-sm text-[#1a1a1a] leading-snug mt-2.5">
-                  📱 Síguenos: @sunsetsaborcasero
-                </p>
               </div>
+
+              {/* Instagram — outside the box, centered */}
+              <a
+                href="https://www.instagram.com/sunsetsaborcasero"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-2 mt-4 active:opacity-70 transition-opacity"
+              >
+                {/* Instagram logo with official gradient */}
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <radialGradient id="ig-grad" cx="30%" cy="107%" r="150%">
+                      <stop offset="0%"   stopColor="#fdf497" />
+                      <stop offset="10%"  stopColor="#fdf497" />
+                      <stop offset="30%"  stopColor="#fd5949" />
+                      <stop offset="60%"  stopColor="#d6249f" />
+                      <stop offset="90%"  stopColor="#285AEB" />
+                    </radialGradient>
+                  </defs>
+                  <rect x="2" y="2" width="20" height="20" rx="6" ry="6" fill="url(#ig-grad)" />
+                  <circle cx="12" cy="12" r="4.5" stroke="white" strokeWidth="1.8" fill="none" />
+                  <circle cx="17.2" cy="6.8" r="1.1" fill="white" />
+                </svg>
+                <span className="text-sm font-medium" style={{ color: '#555555' }}>
+                  @sunsetsaborcasero
+                </span>
+              </a>
             </div>
           )}
 
