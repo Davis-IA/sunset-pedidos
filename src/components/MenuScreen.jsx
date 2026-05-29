@@ -144,7 +144,7 @@ export default function MenuScreen({
 
           {/* Drinks section */}
           {!loading && (
-            <div className="px-4 pb-40">
+            <div className="px-4 pb-4">
               <h3 className="font-bold text-[#1a1a1a] text-base mb-3">🥤 Bebidas</h3>
               <div className="grid grid-cols-3 gap-2">
                 {drinks.map((drink) => {
@@ -194,6 +194,30 @@ export default function MenuScreen({
                     </div>
                   )
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Info notes */}
+          {!loading && (
+            <div className="px-4 pb-40">
+              <div
+                style={{
+                  background: '#FFF8EE',
+                  borderLeft: '3px solid #F5A623',
+                  borderRadius: '8px',
+                  padding: '12px',
+                }}
+              >
+                <p className="text-sm text-[#1a1a1a] leading-snug">
+                  ⏰ Haz tu pedido antes de las 10:45 AM para recibirlo antes de la 1 PM. Pedidos después de las 10:45 AM se entregan después de la 1 PM.
+                </p>
+                <p className="text-sm text-[#1a1a1a] leading-snug mt-2.5">
+                  💳 Pagás en efectivo o transferencia bancaria.
+                </p>
+                <p className="text-sm text-[#1a1a1a] leading-snug mt-2.5">
+                  📱 Síguenos: @sunsetsaborcasero
+                </p>
               </div>
             </div>
           )}
