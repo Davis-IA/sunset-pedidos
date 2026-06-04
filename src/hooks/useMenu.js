@@ -78,6 +78,7 @@ export function useMenu() {
 
           const name = cellStr(c[0]).trim()
           const price = cellStr(c[1]).trim().replace(/^\$/, '')
+
           const description = cellStr(c[2]).trim()
           const img = cellStr(c[4]).trim()
 
@@ -91,7 +92,7 @@ export function useMenu() {
           if (index === 0 && img) imageUrl = img
 
           // Config row: "[Ensaladas]" in col A — parse salad options from col C
-          if (name && name.toLowerCase().includes('ensaladas')) {
+          if (name && (name.toLowerCase().includes('ensaladas') || name.toLowerCase().includes('ensaldas'))) {
             if (description) {
               saladOpts = description
                 .split(',')
