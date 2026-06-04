@@ -91,7 +91,7 @@ export function useMenu() {
           if (index === 0 && img) imageUrl = img
 
           // Config row: "[Ensaladas]" in col A — parse salad options from col C
-          if (name && name.toLowerCase().includes('[ensaladas]')) {
+          if (name && name.toLowerCase().includes('ensaladas')) {
             if (description) {
               saladOpts = description
                 .split(',')
