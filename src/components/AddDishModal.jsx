@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react'
 
 const ALL_ACOMPAÑAMIENTOS = ['Arroz', 'Casamiento']
-const ALL_ENSALADAS = ['Ensalada fresca', 'Chimol']
+const DEFAULT_ENSALADAS   = ['Ensalada fresca', 'Chimol']
 
 /**
  * Reads dish name + description and returns which selectors to show
  * and which specific options to offer.
+ *
+ * saladOptions — dynamic list from the Sheet's [Ensaladas] config row.
+ *   If non-empty, replaces the default [Ensalada fresca / Chimol] list.
  */
-function detectOptions(dish) {
+function detectOptions(dish, saladOptions = []) {
   const desc = (dish.description || '').toLowerCase()
   const name = dish.name.toLowerCase()
+
+  // Use sheet-provided options when available, otherwise fall back to defaults
+  const ensaladasList = saladOptions.length > 0 ? saladOptions : DEFAULT_ENSALADAS
 
   // Rule 1: sopa or "sin acompañamientos" → simple mode
   if (name.includes('sopa') || desc.includes('sin acompañamientos')) {
@@ -32,15 +38,14 @@ function detectOptions(dish) {
     isSopa: false,
     showAcomp: hasAcomp,
     showEnsalada: hasEnsalada,
-    showTortillas: desc.includes('tortilla'),   // Rule 4
-    // Always offer both options once the category is detected
+    showTortillas: desc.includes('tortilla'),
     availableAcomp: hasAcomp ? ALL_ACOMPAÑAMIENTOS : [],
-    availableEnsaladas: hasEnsalada ? ALL_ENSALADAS : [],
+    availableEnsaladas: hasEnsalada ? ensaladasList : [],
   }
 }
 
-export default function AddDishModal({ dish, onClose, onConfirm }) {
-  const opts = detectOptions(dish)
+export default function AddDishModal({ dish, onClose, onConfirm, saladOptions = [] }) {
+  const opts = detectOptions(dish, saladOptions)
 
   const [acompañamiento, setAcompañamiento] = useState(opts.availableAcomp[0] || 'Arroz')
   const [ensalada, setEnsalada] = useState(opts.availableEnsaladas[0] || 'Ensalada fresca')

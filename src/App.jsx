@@ -34,7 +34,7 @@ export default function App() {
   const [submittedCart, setSubmittedCart] = useState([])  // full items sent in last batch
 
   // Menu data — loaded once here and passed down to both screens
-  const { dishes, menuImage, loading, error, refrescoDescripcion } = useMenu()
+  const { dishes, menuImage, loading, error, refrescoDescripcion, saladOptions } = useMenu()
 
   // Build the dynamic refresco display name.
   // Sheet description may be "Bebida de horchata" → display "Refresco de horchata"
@@ -184,6 +184,7 @@ export default function App() {
       menuImage={menuImage}
       loading={loading}
       menuError={error}
+      saladOptions={saladOptions}
     />
   )
 }

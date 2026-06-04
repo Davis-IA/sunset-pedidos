@@ -55,6 +55,7 @@ export function useMenu() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [refrescoDescripcion, setRefrescoDescripcion] = useState('')
+  const [saladOptions, setSaladOptions] = useState([])
 
   useEffect(() => {
     let cancelled = false
@@ -69,6 +70,7 @@ export function useMenu() {
         const rows = data.table?.rows ?? []
         let imageUrl = ''
         let refrescoDesc = ''
+        let saladOpts = []
         const parsed = []
 
         rows.forEach((row, index) => {
@@ -87,6 +89,17 @@ export function useMenu() {
 
           // Banner image is in the first data row only
           if (index === 0 && img) imageUrl = img
+
+          // Config row: "[Ensaladas]" in col A — parse salad options from col C
+          if (name && name.toLowerCase().includes('[ensaladas]')) {
+            if (description) {
+              saladOpts = description
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            }
+            return // skip adding to dishes
+          }
 
           // Filter out drink rows — capture refresco description for the order screen
           if (name && isDrinkRow(name)) {
@@ -111,6 +124,7 @@ export function useMenu() {
         setMenuImage(imageUrl)
         setDishes(parsed)
         setRefrescoDescripcion(refrescoDesc)
+        setSaladOptions(saladOpts)
         setError(false)
       } catch {
         if (!cancelled) setError(true)
@@ -125,5 +139,5 @@ export function useMenu() {
     }
   }, [])
 
-  return { dishes, menuImage, loading, error, refrescoDescripcion }
+  return { dishes, menuImage, loading, error, refrescoDescripcion, saladOptions }
 }

@@ -27,6 +27,7 @@ export default function MenuScreen({
   menuImage,
   loading,
   menuError,
+  saladOptions = [],
 }) {
   const [selectedDish, setSelectedDish] = useState(null)
   const [logoError, setLogoError] = useState(false)
@@ -259,6 +260,7 @@ export default function MenuScreen({
             onAddToCart(item)
             setSelectedDish(null)
           }}
+          saladOptions={saladOptions}
         />
       )}
 
