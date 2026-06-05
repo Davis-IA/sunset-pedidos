@@ -24,7 +24,7 @@ function detectOptions(dish, saladOptions = []) {
       : DEFAULT_ENSALADAS
 
   // Rule 1: sopa or "sin acompañamientos" → simple mode
-  if (name.includes('sopa') || desc.includes('sin acompañamientos')) {
+  if (name.startsWith('sopa') || desc.includes('sin acompañamientos')) {
     return {
       isSopa: true,
       showAcomp: false,
