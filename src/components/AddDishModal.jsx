@@ -14,8 +14,14 @@ function detectOptions(dish, saladOptions = []) {
   const desc = (dish.description || '').toLowerCase()
   const name = dish.name.toLowerCase()
 
-  // Use sheet-provided options when available, otherwise fall back to defaults
-  const ensaladasList = saladOptions.length > 0 ? saladOptions : DEFAULT_ENSALADAS
+  // Build the ensalada options list:
+  // - Sheet-provided options take full priority (no mixing with description-based detection)
+  // - Otherwise use defaults, extended with "Vegetales cocidos" if description mentions it
+  const ensaladasList = saladOptions.length > 0
+    ? saladOptions
+    : desc.includes('vegetales')
+      ? ['Ensalada fresca', 'Vegetales cocidos', 'Chimol']
+      : DEFAULT_ENSALADAS
 
   // Rule 1: sopa or "sin acompañamientos" → simple mode
   if (name.includes('sopa') || desc.includes('sin acompañamientos')) {
