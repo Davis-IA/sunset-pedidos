@@ -97,10 +97,22 @@ export function formatWhatsAppMessage(user, cart, subtotal, options = {}) {
     footerLines = `💵 *Subtotal (sin envío): $${subtotal.toFixed(2)}*`
   }
 
+  // ── Build location lines (GPS and/or text address) ──────────────────────
+  const locationLines = []
+  if (user.coords) {
+    locationLines.push(
+      `📍 *Ubicación:* https://maps.google.com/?q=${user.coords.lat},${user.coords.lng}`,
+    )
+  }
+  if (user.address) {
+    locationLines.push(`📍 *Dirección:* ${user.address}`)
+  }
+  const locationBlock = locationLines.length > 0 ? '\n' + locationLines.join('\n') : ''
+
   return `${header}
 
 👤 *Cliente:* ${user.nombre}
-📞 *Teléfono:* ${user.tel}
+📞 *Teléfono:* ${user.tel}${locationBlock}
 
 ${sectionLabel}
 ${lines.join('\n')}

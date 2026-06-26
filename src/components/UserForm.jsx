@@ -47,12 +47,16 @@ function validateNombre(raw) {
 export default function UserForm({ onSubmit }) {
   const [nombre, setNombre] = useState('')
   const [tel, setTel] = useState('')
+  const [address, setAddress] = useState('')
+  const [gpsStatus, setGpsStatus] = useState('idle') // 'idle' | 'loading' | 'captured' | 'error'
+  const [coords, setCoords] = useState(null)
   const [errors, setErrors] = useState({})
   const [logoError, setLogoError] = useState(false)
 
   const nombreValid = validateNombre(nombre)
   const telValid = validateTel(tel)
-  const canSubmit = nombreValid && telValid
+  const hasLocation = coords !== null || address.trim().length > 0
+  const canSubmit = nombreValid && telValid && hasLocation
 
   const handleTelBlur = () => {
     if (tel.trim() && !telValid) {
@@ -66,11 +70,31 @@ export default function UserForm({ onSubmit }) {
     }
   }
 
+  const handleGPS = () => {
+    if (!navigator.geolocation) {
+      setGpsStatus('error')
+      return
+    }
+    setGpsStatus('loading')
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setGpsStatus('captured')
+      },
+      () => setGpsStatus('error'),
+      { timeout: 10000 },
+    )
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!canSubmit) return
-    // Store digits-only for the tel (keeps international prefixes intact)
-    onSubmit({ nombre: nombre.trim(), tel: digitsOnly(tel) })
+    onSubmit({
+      nombre: nombre.trim(),
+      tel: digitsOnly(tel),
+      address: address.trim(),
+      coords,
+    })
   }
 
   return (
@@ -148,6 +172,54 @@ export default function UserForm({ onSubmit }) {
             {errors.tel && (
               <p className="text-red-500 text-xs mt-1">{errors.tel}</p>
             )}
+          </div>
+
+          {/* Dirección de entrega */}
+          <div>
+            <label className="block text-sm font-semibold text-[#1a1a1a] mb-1.5">
+              Dirección de entrega
+            </label>
+
+            {/* GPS button */}
+            <button
+              type="button"
+              onClick={handleGPS}
+              disabled={gpsStatus === 'loading' || gpsStatus === 'captured'}
+              className={`w-full flex items-center justify-center gap-2 border-2 font-semibold py-3 rounded-xl text-sm transition-all duration-200 ${
+                gpsStatus === 'captured'
+                  ? 'border-green-400 text-green-600 bg-green-50'
+                  : 'border-sunset text-sunset active:opacity-70'
+              }`}
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+              {gpsStatus === 'loading'  && 'Obteniendo ubicación...'}
+              {gpsStatus === 'captured' && '📍 Ubicación capturada ✓'}
+              {(gpsStatus === 'idle' || gpsStatus === 'error') && 'Usar mi ubicación actual'}
+            </button>
+
+            {gpsStatus === 'error' && (
+              <p className="text-red-500 text-xs mt-1.5">
+                No se pudo obtener la ubicación. Escribe tu dirección abajo.
+              </p>
+            )}
+
+            {/* Text address alternative */}
+            <p className="text-xs text-[#888888] mt-3 mb-1.5">
+              {coords ? 'O agrega tu dirección (opcional)' : 'O escribe tu dirección'}
+            </p>
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder={'Residencial Las Palmas, calle 3, casa 15, Santa Tecla'}
+              rows={2}
+              className={`w-full border rounded-xl px-4 py-3 text-base outline-none transition-colors resize-none ${
+                address.trim()
+                  ? 'border-green-400 focus:border-green-500'
+                  : 'border-gray-200 focus:border-sunset'
+              }`}
+            />
           </div>
 
           <button
