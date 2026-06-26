@@ -14,14 +14,16 @@ function detectOptions(dish, saladOptions = []) {
   const desc = (dish.description || '').toLowerCase()
   const name = dish.name.toLowerCase()
 
-  // Build the ensalada options list:
-  // - Sheet-provided options take full priority (no mixing with description-based detection)
-  // - Otherwise use defaults, extended with "Vegetales cocidos" if description mentions it
-  const ensaladasList = saladOptions.length > 0
-    ? saladOptions
-    : desc.includes('vegetales')
-      ? ['Ensalada fresca', 'Vegetales cocidos', 'Chimol']
-      : DEFAULT_ENSALADAS
+  // Start from Sheet options (or defaults), then inject "Vegetales cocidos" before
+  // "Chimol" when the dish description mentions vegetables — unless already present.
+  const baseList = saladOptions.length > 0 ? saladOptions : DEFAULT_ENSALADAS
+  let ensaladasList = baseList
+  if (desc.includes('vegetales') && !baseList.includes('Vegetales cocidos')) {
+    const chimolIdx = baseList.indexOf('Chimol')
+    ensaladasList = chimolIdx !== -1
+      ? [...baseList.slice(0, chimolIdx), 'Vegetales cocidos', ...baseList.slice(chimolIdx)]
+      : [...baseList, 'Vegetales cocidos']
+  }
 
   // Rule 1: sopa or "sin acompañamientos" → simple mode
   if (name.startsWith('sopa') || desc.includes('sin acompañamientos')) {
